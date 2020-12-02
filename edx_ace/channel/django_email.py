@@ -68,6 +68,7 @@ class DjangoEmailChannel(Channel):
     def deliver(self, message, rendered_message):
         # Compress spaces and remove newlines to make it easier to author templates.
         subject = re.sub('\\s+', ' ', rendered_message.subject, re.UNICODE).strip()
+        from_name = re.sub('\\s+', ' ', rendered_message.from_name, re.UNICODE).strip()
         default_from_address = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
         reply_to = message.options.get('reply_to', None)
         from_address = message.options.get('from_address', default_from_address)
@@ -84,7 +85,7 @@ class DjangoEmailChannel(Channel):
             mail = EmailMultiAlternatives(
                 subject=subject,
                 body=rendered_message.body,
-                from_email=from_address,
+                from_email=f"{from_name} <{from_address}>",
                 to=[message.recipient.email_address],
                 reply_to=reply_to,
             )
