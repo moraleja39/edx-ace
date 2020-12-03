@@ -85,7 +85,10 @@ class DjangoEmailChannel(Channel):
             mail = EmailMultiAlternatives(
                 subject=subject,
                 body=rendered_message.body,
-                from_email=f"{from_name} <{from_address}>",
+                from_email="{from_name} <{from_address}>".format(
+                    from_name=from_name,
+                    from_address=from_address
+                ),
                 to=[message.recipient.email_address],
                 reply_to=reply_to,
             )
