@@ -15,7 +15,7 @@ from edx_ace.errors import FatalChannelDeliveryError
 
 LOG = logging.getLogger(__name__)
 
-TEMPLATE = """\
+DEFAULT_TEMPLATE = """\
 <!DOCTYPE html>
 <html>
     <head>
@@ -26,6 +26,8 @@ TEMPLATE = """\
     </body>
 </html>
 """
+
+TEMPLATE = getattr(settings, "ACE_DJANGO_TEMPLATE", DEFAULT_TEMPLATE)
 
 
 class DjangoEmailChannel(Channel):
