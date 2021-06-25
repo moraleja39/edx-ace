@@ -1,7 +1,7 @@
 """
 Tests of :mod:`edx_ace.channel`.
 """
-from mock import patch
+from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 
@@ -29,7 +29,7 @@ class TestChannelMap(TestCase):
                 'key2': 'value2',
             },
             'recipient': Recipient(
-                username='me',
+                lms_user_id=123,
             )
         }
 

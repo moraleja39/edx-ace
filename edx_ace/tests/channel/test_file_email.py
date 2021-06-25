@@ -1,7 +1,6 @@
 # pylint: disable=missing-docstring
 from smtplib import SMTPException
-
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 from django.core import mail
 from django.core.files.temp import NamedTemporaryFile
@@ -41,7 +40,7 @@ class TestFilesEmailChannel(TestCase):
                     'from_address': 'bulk@example.com',
                     PATH_OVERRIDE_KEY: f.name,
                 },
-                recipient=Recipient(username='Robot', email_address='mr@robot.io'),
+                recipient=Recipient(lms_user_id=123, email_address='mr@robot.io'),
             )
 
             channel.deliver(message, rendered_message)

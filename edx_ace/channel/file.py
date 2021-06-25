@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 A diagnostic utility that can be used to render email messages to files on disk.
 """
@@ -8,14 +7,13 @@ import os
 from datetime import datetime
 
 import attr
-import six
 
 from edx_ace.channel import Channel, ChannelType
 
 LOG = logging.getLogger(__name__)
 
 PATH_OVERRIDE_KEY = 'output_file_path'
-DEFAULT_OUTPUT_FILE_PATH_TPL = '/edx/src/ace_messages/{recipient.username}.{date:%Y%m%d-%H%M%S}.html'
+DEFAULT_OUTPUT_FILE_PATH_TPL = '/edx/src/ace_messages/{recipient.lms_user_id}.{date:%Y%m%d-%H%M%S}.html'
 TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -72,10 +70,7 @@ class FileEmailChannel(Channel):
         return True
 
     def _encode(self, s):  # pragma: no cover
-        if six.PY2:
-            return s.encode(OUTPUT_ENCODING)
-        else:
-            return s
+        return s
 
     def deliver(self, message, rendered_message):
         template_vars = {k: v.strip() for k, v in list(attr.asdict(rendered_message).items())}

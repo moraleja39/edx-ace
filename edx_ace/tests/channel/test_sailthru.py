@@ -1,11 +1,13 @@
 # pylint: disable=missing-docstring
+from unittest.mock import patch
+
 import ddt
-from mock import patch
 
 from django.test import TestCase, override_settings
 
 from edx_ace.channel.sailthru import SailthruEmailChannel
 from edx_ace.delivery import deliver
+from edx_ace.errors import InvalidMessageError
 from edx_ace.message import Message
 from edx_ace.presentation import render
 from edx_ace.recipient import Recipient
@@ -22,7 +24,7 @@ class TestSailthruChannel(TestCase):
             app_label='testapp',
             name='testmessage',
             options={},
-            recipient=Recipient(username='Robot', email_address='mr@robot.io'),
+            recipient=Recipient(lms_user_id=123, email_address='mr@robot.io'),
         )
 
         rendered_email = render(self.channel, message)
@@ -49,10 +51,22 @@ class TestSailthruChannel(TestCase):
             app_label='testapp',
             name='testmessage',
             options=message_options,
-            recipient=Recipient(username='Robot', email_address='mr@robot.io'),
+            recipient=Recipient(lms_user_id=123, email_address='mr@robot.io'),
         )
         rendered_email = render(self.channel, message)
 
         with patch('edx_ace.channel.sailthru.SailthruClient.send') as mock_send:
             deliver(self.channel, rendered_email, message)
             self.assertEqual(mock_send.call_args_list[0][1]['options'], expected_options)
+
+    def test_no_recipient_email_address(self):
+        message = Message(
+            app_label='testapp',
+            name='testmessage',
+            options={},
+            recipient=Recipient(lms_user_id=123),
+        )
+        rendered_email = render(self.channel, message)
+
+        with self.assertRaisesRegex(InvalidMessageError, 'No email address'):
+            deliver(self.channel, rendered_email, message)

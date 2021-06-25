@@ -7,4 +7,3 @@ attrs>=17.2.0                     # Attributes without boilerplate
 sailthru-client==2.2.3
 six
 stevedore>=1.10.0
-

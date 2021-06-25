@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The main entry point for sending messages with ACE.
 
@@ -12,7 +11,7 @@ Usage:
     msg = Message(
         name="test_message",
         app_label="my_app",
-        recipient=Recipient(username='a_user', email='a_user@example.com'),
+        recipient=Recipient(lms_user_id='123456', email='a_user@example.com'),
         language='en',
         context={
             'stuff': 'to personalize the message',
@@ -20,8 +19,6 @@ Usage:
     )
     ace.send(msg)
 """
-import six
-
 from edx_ace import delivery, policy, presentation
 from edx_ace.channel import get_channel_for_message
 from edx_ace.errors import ChannelError, UnsupportedChannelError
@@ -56,6 +53,6 @@ def send(msg):
             delivery.deliver(channel, rendered_message, msg)
         except ChannelError as error:
             msg.report(
-                '{channel_type}_error'.format(channel_type=channel_type),
-                six.text_type(error)
+                f'{channel_type}_error',
+                str(error)
             )

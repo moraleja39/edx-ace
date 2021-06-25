@@ -1,7 +1,6 @@
 # pylint: disable=missing-docstring
 from smtplib import SMTPException
-
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 from django.core import mail
 from django.test import TestCase, override_settings
@@ -15,7 +14,7 @@ from edx_ace.recipient import Recipient
 
 class TestDjangoEmailChannel(TestCase):
     def setUp(self):
-        super(TestDjangoEmailChannel, self).setUp()
+        super().setUp()
 
         self.channel = DjangoEmailChannel()
         self.message = Message(
@@ -24,7 +23,7 @@ class TestDjangoEmailChannel(TestCase):
             options={
                 'from_address': 'bulk@example.com',
             },
-            recipient=Recipient(username='Robot', email_address='mr@robot.io'),
+            recipient=Recipient(lms_user_id=123, email_address='mr@robot.io'),
         )
 
         self.mock_rendered_message = Mock(
@@ -43,7 +42,7 @@ class TestDjangoEmailChannel(TestCase):
             app_label='testapp',
             name='testmessage',
             options={},
-            recipient=Recipient(username='Robot', email_address='mr@robot.io'),
+            recipient=Recipient(lms_user_id=123, email_address='mr@robot.io'),
         )
 
         return render(channel, message)
@@ -75,7 +74,7 @@ class TestDjangoEmailChannel(TestCase):
             app_label='testapp',
             name='testmessage',
             options={},
-            recipient=Recipient(username='Robot', email_address='mr@robot.io'),
+            recipient=Recipient(lms_user_id=123, email_address='mr@robot.io'),
         )
 
         with self.assertRaises(FatalChannelDeliveryError):
@@ -87,7 +86,7 @@ class TestDjangoEmailChannel(TestCase):
             app_label='testapp',
             name='testmessage',
             options={},
-            recipient=Recipient(username='Robot', email_address='mr@robot.io'),
+            recipient=Recipient(lms_user_id=123, email_address='mr@robot.io'),
         )
 
         self.channel.deliver(message, self.mock_rendered_message)

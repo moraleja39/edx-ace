@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
 """
 :mod:`edx_ace.channel.django_email` implements a Django `send_mail()` email
 delivery channel for ACE.
 """
 import logging
-import re
 from smtplib import SMTPException
 
-from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 
-from edx_ace.channel import Channel, ChannelType
+from edx_ace.channel import Channel
+from edx_ace.channel.mixins import EmailChannelMixin
 from edx_ace.errors import FatalChannelDeliveryError
 
 LOG = logging.getLogger(__name__)
@@ -30,7 +28,7 @@ DEFAULT_TEMPLATE = """\
 TEMPLATE = getattr(settings, "ACE_DJANGO_TEMPLATE", DEFAULT_TEMPLATE)
 
 
-class DjangoEmailChannel(Channel):
+class DjangoEmailChannel(EmailChannelMixin, Channel):
     """
     A `send_mail()` channel for edX ACE.
 
@@ -58,8 +56,6 @@ class DjangoEmailChannel(Channel):
             .. settings_end
     """
 
-    channel_type = ChannelType.EMAIL
-
     @classmethod
     def enabled(cls):
         """
@@ -68,21 +64,12 @@ class DjangoEmailChannel(Channel):
         return True
 
     def deliver(self, message, rendered_message):
-        # Compress spaces and remove newlines to make it easier to author templates.
-        subject = re.sub('\\s+', ' ', rendered_message.subject, re.UNICODE).strip()
+        subject = self.get_subject(rendered_message)
         from_name = re.sub('\\s+', ' ', rendered_message.from_name, re.UNICODE).strip()
-        default_from_address = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+        from_address = self.get_from_address(message)
         reply_to = message.options.get('reply_to', None)
-        from_address = message.options.get('from_address', default_from_address)
-        if not from_address:
-            raise FatalChannelDeliveryError(
-                'from_address must be included in message delivery options or as the DEFAULT_FROM_EMAIL settings'
-            )
 
-        rendered_template = TEMPLATE.format(
-            head_html=rendered_message.head_html,
-            body_html=rendered_message.body_html,
-        )
+        rendered_template = self.make_simple_html_template(rendered_message.head_html, rendered_message.body_html)
         try:
             mail = EmailMultiAlternatives(
                 subject=subject,
@@ -99,4 +86,4 @@ class DjangoEmailChannel(Channel):
             mail.send()
         except SMTPException as e:
             LOG.exception(e)
-            raise FatalChannelDeliveryError('An SMTP error occurred (and logged) from Django send_email()')
+            raise FatalChannelDeliveryError('An SMTP error occurred (and logged) from Django send_email()') from e
