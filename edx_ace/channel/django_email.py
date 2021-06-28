@@ -5,6 +5,7 @@ delivery channel for ACE.
 import logging
 from smtplib import SMTPException
 
+from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 
 from edx_ace.channel import Channel
