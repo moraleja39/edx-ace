@@ -2,6 +2,7 @@
 :mod:`edx_ace.channel.mixins` implements some helper methods for channels
 """
 import re
+import logging
 
 from django.conf import settings
 
@@ -16,15 +17,21 @@ class EmailChannelMixin:
     channel_type = ChannelType.EMAIL
 
     @staticmethod
-    def get_from_address(message):
+    def get_from_address(message, rendered_message=None):
         """Grabs the from_address from the message with fallback and error handling"""
         default_from_address = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
         from_address = message.options.get('from_address', default_from_address)
+        from_name = getattr(rendered_message, 'from_name', None)
         if not from_address:
             raise FatalChannelDeliveryError(
                 'from_address must be included in message delivery options or as the DEFAULT_FROM_EMAIL settings'
             )
-        return from_address
+        logging.error(rendered_message)
+        if from_name is not None:
+            from_name = re.sub('\\s+', ' ', str(from_name), re.UNICODE).strip()
+            return "{from_name} <{from_address}>".format(from_name=from_name, from_address=from_address)
+        else:
+            return from_address
 
     @staticmethod
     def get_subject(rendered_message):

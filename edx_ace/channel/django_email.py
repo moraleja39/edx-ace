@@ -66,8 +66,7 @@ class DjangoEmailChannel(EmailChannelMixin, Channel):
 
     def deliver(self, message, rendered_message):
         subject = self.get_subject(rendered_message)
-        from_name = re.sub('\\s+', ' ', rendered_message.from_name, re.UNICODE).strip()
-        from_address = self.get_from_address(message)
+        from_address = self.get_from_address(message, rendered_message)
         reply_to = message.options.get('reply_to', None)
 
         rendered_template = self.make_simple_html_template(rendered_message.head_html, rendered_message.body_html)
@@ -75,10 +74,7 @@ class DjangoEmailChannel(EmailChannelMixin, Channel):
             mail = EmailMultiAlternatives(
                 subject=subject,
                 body=rendered_message.body,
-                from_email="{from_name} <{from_address}>".format(
-                    from_name=from_name,
-                    from_address=from_address
-                ),
+                from_email=from_address,
                 to=[message.recipient.email_address],
                 reply_to=reply_to,
             )

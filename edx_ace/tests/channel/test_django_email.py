@@ -92,6 +92,19 @@ class TestDjangoEmailChannel(TestCase):
         self.channel.deliver(message, self.mock_rendered_message)
         assert len(mail.outbox) == 1, 'Should have one email'
 
+    @override_settings(DEFAULT_FROM_EMAIL='from@email.com')
+    def test_with_from_name(self):
+        message = Message(
+            app_label='testapp',
+            name='testmessage',
+            options={},
+            recipient=Recipient(lms_user_id=123, email_address='mr@robot.io'),
+        )
+        self.channel.deliver(message, self._get_rendered_message())
+        sent_email = mail.outbox[0]
+        assert sent_email.from_email == "template from_name.txt <from@email.com>", 'Should correctly render from_name'
+
+
     def test_render_email_with_django_channel(self):
         rendered_email = self._get_rendered_message()
         assert '{beacon_src}' not in rendered_email.body_html
